@@ -4,31 +4,29 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
-const SignUp = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [error, setError] = useState(null);
+const SignUp: React.FC = () => {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [nickname, setNickname] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      // 🔹 Create user with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // 🔹 Store user info in Firestore (using Auth UID as document ID)
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
-        nickname: nickname,
+        nickname,
         uid: user.uid,
         createdAt: new Date().toISOString(),
       });
-      navigate("/"); // Redirect to home after successful sign-up
+      navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     }
   };
 
@@ -53,7 +51,7 @@ const SignUp = () => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-                <input
+        <input
           className="input-field"
           type="text"
           placeholder="Nickname"

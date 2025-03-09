@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { db } from "../firebase/firebase";
+import React, { useState, useEffect, ChangeEvent } from "react";
+import { db } from "../../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import Papa from "papaparse";
-import { useAuth } from "./components/userInfo";
+import { useAuth } from "../components/userInfo";
 import { useNavigate } from "react-router-dom";
 
-const LibrarianPanel = () => {
-  const [file, setFile] = useState(null);
+const LibrarianPanel: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>("");
   const { user, adminData } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!user || !adminData) {
-      //console.log("user in libr panel:", user.uid, "isAdmin in libr panel:", adminData);
       navigate("/");
     }
   }, [user, adminData, navigate]);
@@ -22,8 +21,11 @@ const LibrarianPanel = () => {
   if (!user || !adminData) {
     return <p>Redirecting...</p>;
   }
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+    }
   };
 
   const handleUpload = async () => {
@@ -37,42 +39,42 @@ const LibrarianPanel = () => {
 
     Papa.parse(file, {
       complete: async (result) => {
-        const books = result.data.slice(1); // Ignore header row
+        const books = result.data.slice(1) as string[][];
         const bookCollection = collection(db, "books");
 
         try {
           const uploadPromises = books.map(async (row, index) => {
-            if (!Array.isArray(row) || row.length < 7) {
+            if (!Array.isArray(row) || row.length < 6) {
               console.warn(`Skipping row ${index + 2}: Invalid row format`, row);
               return;
             }
-          
-            let [title, author, genres, year, publisher, language] = row;
 
-            // Check if any field is undefined or empty
-            if (![title, author, genres, year, publisher, language].every((field) => field && field.trim() !== "")) {
+            let [title, author, genres, year, publisher, language] = row.map((field) => field.trim());
+
+            if (![title, author, genres, year, publisher, language].every((field) => field)) {
               console.warn(`Skipping row ${index + 2}: Missing values`, row);
               return;
             }
-  
-            // Trim & Parse Values
-            title = title.trim();
-            author = author.trim();
-            genres = genres ? genres.split(",").map((g) => g.trim()) : [];
-            year = /^\d{4}$/.test(year.trim()) ? parseInt(year.trim()) : year.trim();
-            publisher = publisher.trim();
-            language = language.trim();
-  
-            await addDoc(bookCollection, { title, author, genres, year, publisher, language });
+
+            const parsedYear = /^\d{4}$/.test(year) ? parseInt(year, 10) : year;
+
+            await addDoc(bookCollection, {
+              title,
+              author,
+              genres: genres.split(",").map((g) => g.trim()),
+              year: parsedYear,
+              publisher,
+              language,
+            });
           });
-  
+
           await Promise.all(uploadPromises);
           alert("Books uploaded successfully!");
         } catch (err) {
           console.error("Error uploading books:", err);
           setError("Failed to upload books.");
         }
-  
+
         setUploading(false);
       },
       header: false,
@@ -88,7 +90,6 @@ const LibrarianPanel = () => {
       <button onClick={handleUpload} disabled={uploading} className="btn">
         {uploading ? "Uploading..." : "Upload CSV"}
       </button>
-
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );

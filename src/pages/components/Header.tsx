@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 // import Menu from './userMenu';
-import mainImg from '../../img/main_icon.jpg';
+import mainImg from "../../img/main_icon.jpg";
 
-const Header = () => {
+const Header: React.FC = () => {
   return (
     <header className="header">
       <div className="container">
