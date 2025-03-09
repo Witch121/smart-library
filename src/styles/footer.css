@@ -1,0 +1,25 @@
+footer {
+    width: 100%;
+    text-align: center;
+    padding-top: 1.5rem;
+}
+.copyright{
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+.copyright p {
+    margin: 0;
+}
+#date {
+    padding: 0.3rem;
+}
+@media (max-width: 600px) {
+    .Footer {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .copyright {
+        font-size: 0.9rem;
+    }
+}
