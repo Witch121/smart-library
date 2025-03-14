@@ -14,6 +14,7 @@ import LibrarianPanel from "./pages/adminsPages/LibrarianPanel";
 import Library from "./pages/adminsPages/Library";
 import Repair from "./pages/adminsPages/Repair";
 import WaitingList from "./pages/adminsPages/WaitingList";
+import InfoAboutUsers from "./pages/adminsPages/InfoAboutUnsers"
 
 import RecommendationAI from "./pages/usersPages/RecommendationAI";
 import ReadingRoom from "./pages/usersPages/ReadingRoom";
@@ -44,6 +45,7 @@ function App() {
             <Route path="/library" element={<Library />} />
             <Route path="/repair" element={<Repair />} />
             <Route path="/waitingList" element={<WaitingList />} />
+            <Route path="/infoAboutUsers" element={<InfoAboutUsers />} />
 
             <Route path="/recommendationAI" element={<RecommendationAI />} />
             <Route path="/readingRoom" element={<ReadingRoom />} />

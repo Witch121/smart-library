@@ -1,0 +1,106 @@
+.library_table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .library_table th,
+  .library_table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .library_table th {
+    background-color: #1f2937;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .library_table tbody tr:nth-child(even) {
+    background-color: #f4f4f4;
+  }
+  
+  .library_table tbody tr:hover {
+    background-color: #e3e3e3;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  /* Search and Filter */
+  input[type="text"],
+  select {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    margin: 10px 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+  
+  input[type="text"]:focus,
+  select:focus {
+    border-color: #60a5fa;
+    outline: none;
+  }
+  
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    color: white;
+    background-color: #60a5fa;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .btn:hover {
+    background-color: #3b82f6;
+    transform: translateY(-2px);
+  }
+  
+  .btn:active {
+    background-color: #2563eb;
+    transform: translateY(0);
+  }
+  
+  .btn-table {
+    padding: 10px 15px;
+    background-color: #1f2937;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  .btn-table:hover {
+    background-color: #374151;
+  }
+  
+  /* Editable Fields */
+  .library_table input[type="text"],
+  .library_table input[type="number"],
+  .library_table select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .library_table input:focus,
+  .library_table select:focus {
+    border-color: #60a5fa;
+    outline: none;
+  }
+  

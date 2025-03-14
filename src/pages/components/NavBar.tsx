@@ -68,10 +68,11 @@ const NavBar = () => {
               )}
               {isAdmin && (
                 <>
-                  <li><Link to="/librarianPanel" className="linkNav">📚 Librarian Panel</Link></li>
+                  <li><Link to="/librarianPanel" className="linkNav">📚 Add Books</Link></li>
                   <li><Link to="/library" className="linkNav">🏢 Library</Link></li>
                   <li><Link to="/repair" className="linkNav">🔧 Repair</Link></li>
                   <li><Link to="/waitingList" className="linkNav">⏳ Waiting List</Link></li>
+                  <li><Link to="/infoAboutUsers" className="linkNav">👥 Users Info</Link></li>
                 </>
               )}
             </>

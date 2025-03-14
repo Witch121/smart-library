@@ -1,3 +1,4 @@
+@import url("./reset.css");
 @import url("./footer.css");
 @import url("./header.css");
 @import url("./home.css");
@@ -6,3 +7,6 @@
 @import url("./signOut.css");
 @import url("./common.css");
 @import url("./aiRecommend.css");
+@import url("./librarianPanel.css");
+@import url("./form.css");
+@import url("./tables.css");
