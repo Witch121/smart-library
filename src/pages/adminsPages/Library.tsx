@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/userInfo";
 import { db } from "../../firebase/firebase";
-import { collection, query, getDocs, orderBy, updateDoc, doc} from "firebase/firestore";
+import { collection, query, getDocs, orderBy, updateDoc, doc, writeBatch, setDoc} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 interface Book {
@@ -14,9 +14,17 @@ interface Book {
   language: string;
   availability: boolean;
 }
+  
+interface ReservationData {
+  bookId: string;
+  uid: string;
+  title: string;
+  reservedAt: string;
+  availability: boolean;
+}
 
 const Library: React.FC = () => {
-  const { adminData } = useAuth();
+  const { adminData, user } = useAuth();
   const navigate = useNavigate();
   const [books, setBooks] = useState<Book[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -25,6 +33,8 @@ const Library: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [updatedBook, setUpdatedBook] = useState<Partial<Book>>({});
   const [editBookId, setEditBookId] = useState<string | null>(null);
+  const [showReservationForm, setShowReservationForm] = useState<boolean>(false);  
+  const [reservationData, setReservationData] = useState<Partial<ReservationData>>({});
   const [availableBooksCount, setAvailableBooksCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const booksPerPage = 20;
@@ -69,6 +79,69 @@ const Library: React.FC = () => {
   const handleEditClick = (book: Book) => {
     setEditBookId(book.id);
     setUpdatedBook({ ...book });
+  };
+
+  const handleReserveClick = (book: Book) => {
+  
+    // Prepare reservation details
+    const reservationDetails = {
+      bookId: book.id,
+      title: book.title,
+      uid: adminData?.isAdmin ? "" : user?.uid, // Auto-fill UID if user, leave empty for admin selection
+      reservedAt: new Date().toISOString(),
+      availability: false, // Mark as unavailable
+    };
+  
+    setReservationData(reservationDetails);
+    setShowReservationForm(true);
+  };
+  
+  const handleConfirmReservation = async () => {
+    if (!reservationData?.bookId || !reservationData?.uid) {
+      alert("Please enter a valid user ID");
+      return;
+    }
+  
+    try {
+      const batch = writeBatch(db);
+  
+      // 🔹 Add reservation to 'reserve' collection
+      const reserveRef = doc(db, "reserve", reservationData.bookId);
+      batch.set(reserveRef, reservationData);
+  
+      // 🔹 Update book's availability in Firestore
+      const bookRef = doc(db, "books", reservationData.bookId);
+      batch.update(bookRef, { availability: false });
+  
+      // 🔹 Update user's 'reservedBooks' field in Firestore
+      const userRef = doc(db, "users", reservationData.uid);
+      const userSnapshot = await getDocs(query(collection(db, "users"), orderBy("uid")));
+  
+      if (userSnapshot) {
+        const userData = userSnapshot.docs.find((doc) => doc.id === reservationData.uid)?.data();
+        const existingReservedBooks = userData?.reservedBooks || [];
+  
+        batch.update(userRef, {
+          reservedBooks: [...existingReservedBooks, reservationData.bookId],
+        });
+      }
+  
+      // 🔹 Commit the batch to Firestore
+      await batch.commit();
+  
+      // Update the state to reflect availability change
+      setBooks((prevBooks) =>
+        prevBooks.map((book) =>
+          book.id === reservationData.bookId ? { ...book, availability: false } : book
+        )
+      );
+  
+      alert("Book reserved successfully!");
+      setShowReservationForm(false);
+    } catch (error) {
+      console.error("Error reserving book:", error);
+      alert("Failed to reserve book.");
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -124,6 +197,7 @@ const Library: React.FC = () => {
   const filteredBooks = books.filter((book) => {
     const lowerCaseFilter = filter.toLowerCase();
     return (
+      book.id.toLowerCase().includes(lowerCaseFilter) ||
       book.title.toLowerCase().includes(lowerCaseFilter) ||
       book.author.toLowerCase().includes(lowerCaseFilter) ||
       (Array.isArray(book.genres) && book.genres.some((genres) => genres.toLowerCase().includes(lowerCaseFilter))) ||
@@ -174,10 +248,24 @@ const Library: React.FC = () => {
           <p>Loading your books...</p>
         ) : (
             <>
+            {showReservationForm && (
+              <div className="modal">
+                <h2>Reserve Book</h2>
+                <p>Book: {reservationData?.title}</p>
+                <label>User ID:</label>
+                <input
+                  type="text"
+                  value={reservationData?.uid || ""}
+                  onChange={(e) => setReservationData((prev) => ({ ...prev, uid: e.target.value }))}
+                />
+                <button onClick={handleConfirmReservation} className="btn">Confirm</button>
+                <button onClick={() => setShowReservationForm(false)} className="btn">Cancel</button>
+              </div>
+            )}
             <table className="library_table">
             <thead>
               <tr className="showLibraryTableHead">
-                {["Title", "Author", "Genre", "Language", "Publisher", "Year", "Availability"].map((label, index) => (
+                {["id","Title", "Author", "Genre", "Language", "Publisher", "Year", "Availability"].map((label, index) => (
                   <th key={label}>
                      {label}
                     </th>
@@ -188,7 +276,7 @@ const Library: React.FC = () => {
             <tbody>
               {paginatedBooks.map((book) => (
                 <tr key={book.id}>
-                  {["title", "author", "genres", "language", "publisher", "year", "availability"].map((field) => (
+                  {["id","title", "author", "genres", "language", "publisher", "year", "availability"].map((field) => (
                     <td key={field}>
                       {editBookId === book.id ? (
                         field === "availability" || field === "avaliability" ? (
@@ -227,6 +315,8 @@ const Library: React.FC = () => {
                       <div>
                         <button onClick={() => handleEditClick(book)} className="btn"> Edit
                         </button>
+                        <button onClick={() => handleReserveClick(book)} className="btn"> Reserve
+                        </button>
                       </div>
                     )}
                   </td>
@@ -234,8 +324,7 @@ const Library: React.FC = () => {
               ))}
             </tbody>
           </table>
-
-              <div className="pagination">
+            <div className="pagination">
               {Array.from({ length: totalPages }, (_, index) => (
                 <button
                   key={index + 1}

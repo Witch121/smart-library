@@ -9,7 +9,7 @@ interface User {
   nickname: string;
   email: string;
   reservedBooks: string[];
-  currentBooks: string[];
+  currentBook: string[];
   notes: string;
 }
 
@@ -24,8 +24,8 @@ const InfoAboutUsers: React.FC = () => {
   const [updatedUser, setUpdatedUser] = useState<Partial<User>>({});
   const [editUserId, setEditUserId] = useState<string | null>(null);
   const [numberOfUsersCount, setNumberOfUsersCount] = useState<number>(0);
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const usersPerPage = 20;
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const usersPerPage = 20;
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -42,7 +42,7 @@ const InfoAboutUsers: React.FC = () => {
             nickname: data.nickname || "N/A",
             email: data.email || "N/A",
             reservedBooks: data.reservedBooks || [],
-            currentBooks: data.currentBooks || [],
+            currentBook: data.currentBook || [],
             notes: data.notes || "",
           } as User;
         });
@@ -99,15 +99,14 @@ const InfoAboutUsers: React.FC = () => {
       user.notes.toLowerCase().includes(lowerCaseFilter) ||
       (Array.isArray(user.reservedBooks) &&
         user.reservedBooks.some((book) => book.toLowerCase().includes(lowerCaseFilter))) ||
-      (Array.isArray(user.currentBooks) &&
-        user.currentBooks.some((book) => book.toLowerCase().includes(lowerCaseFilter)))
+      (Array.isArray(user.currentBook) &&
+        user.currentBook.some((book) => book.toLowerCase().includes(lowerCaseFilter)))
     );
   });
 
   const handleSearch = () => {
     setCurrentPage(1);
     setFilter(searchTerm);
-    // console.log("filter: ", searchTerm);
   };
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -153,7 +152,7 @@ const InfoAboutUsers: React.FC = () => {
           <tbody>
             {paginatedUsers.map((user) => (
               <tr key={user.id}>
-                {["id", "nickname", "email", "currentBooks", "reservedBooks"].map((field) => (
+                {["id", "nickname", "email", "currentBook", "reservedBooks"].map((field) => (
                   <td key={field}>
                     {editUserId === user.id ? (
                       <input
@@ -162,7 +161,7 @@ const InfoAboutUsers: React.FC = () => {
                         value={(updatedUser as any)[field as keyof User] || (user as any)[field as keyof User]}
                         onChange={handleInputChange}
                       />
-                    ) : field === "currentBooks" ? (
+                    ) : field === "currentBook" ? (
                       Array.isArray(user[field as keyof User])
                         ? (user[field as keyof User] as string[]).join(", ") // ✅ Works when it's an array
                         : typeof user[field as keyof User] === "string"

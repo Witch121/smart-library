@@ -29,7 +29,7 @@ const Home: React.FC = () => {
           {adminData?.isAdmin && (
             <>
               <p>Have a nice day, the guardian of the library!</p>
-              {console.log("admin data: ", adminData)}
+              {/* {console.log("admin data: ", adminData)} */}
             </>
           )}
         </>
