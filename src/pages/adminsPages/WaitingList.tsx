@@ -11,18 +11,18 @@ interface WaitingReservation {
   uid: string;
 }
 
-// interface WaitingToReturn {
-//   bookId: string;
-//   creatorId: string;
-//   reason: string;
-// }
+interface WaitingToReturn {
+  bookId: string;
+  creatorId: string;
+  reason: string;
+}
 
 
 const WaitingList: React.FC = () => {
    const { adminData, user } = useAuth();
     const navigate = useNavigate();
     const [reservedBooks, setReservedBooks] = useState<WaitingReservation[]>([]);
-    // const [afterUserBooks, setAfterUserBooks] = useState<WaitingToReturn[]>([]);
+    const [afterUserBooks, setAfterUserBooks] = useState<WaitingToReturn[]>([]);
     // const [searchTerm, setSearchTerm] = useState<string>("");
     // const [filter, setFilter] = useState<string>("");
     // const [sortBy, setSortBy] = useState<string>("title");
@@ -30,12 +30,15 @@ const WaitingList: React.FC = () => {
     // const [updatedBook, setUpdatedBook] = useState<Partial<WaitingToReturn>>({});
     // const [editBookId, setEditBookId] = useState<string | null>(null);
     const [reservedBooksCount, setReservedBooksCount] = useState<number>(0);
-    // const [reternedBooksCount, setReternedBooksCount] = useState<number>(0);
+    const [reternedBooksCount, setReternedBooksCount] = useState<number>(0);
 
       useEffect(() => {
         const fetchReservedBooks = async () => {
           if (!adminData) return;
           setLoading(true);
+          if(user){
+            console.log("user", user.uid);
+          }
           try {
             const reservedRef = collection(db, "reserve");
             const q = query(reservedRef);
@@ -60,34 +63,33 @@ const WaitingList: React.FC = () => {
           }
         };
 
-        // const fetchAfterUsersBooks = async () => {
-        //   if (!adminData) return;
-        //   setLoading(true);
-        //   try {
-        //     const pendingRef = collection(db, "pending");
-        //     const q = query(pendingRef, orderBy(sortBy));
-        //     const querySnapshot = await getDocs(q);
-        //     const pendingData = querySnapshot.docs.map((doc) => {
-        //       const data = doc.data();
-        //       return {
-        //         bookId: data.bookId || "N/A",
-        //         creatorId: data.title || "N/A",
-        //         reason: data.reservedAt || [],
-        //       } as WaitingToReturn;
-        //     });
-    
-        //     setAfterUserBooks(afterUserBooks);
-    
-        //     setReternedBooksCount(pendingData.length);
-        //   } catch (error) {
-        //     console.error("Error fetching users: ", error);
-        //   } finally {
-        //     setLoading(false);
-        //   }
-        // };
+        const fetchAfterUsersBooks = async () => {
+          if (!adminData) return;
+          setLoading(true);
+          try {
+            const pendingRef = collection(db, "pending");
+            const q = query(pendingRef);
+            const querySnapshot = await getDocs(q);
+            const pendingData = querySnapshot.docs.map((doc) => {
+              const data = doc.data();
+              return {
+                bookId: data.bookId || "N/A",
+                creatorId: data.creatorId || "N/A",
+                reason: data.reason || "N/A", // Corrected typo from 'reson' to 'reason'
+              } as WaitingToReturn;
+            });
+        
+            setAfterUserBooks(pendingData); // Corrected line
+            setReternedBooksCount(pendingData.length);
+          } catch (error) {
+            console.error("Error fetching users: ", error);
+          } finally {
+            setLoading(false);
+          }
+        };
     
         fetchReservedBooks();
-        // fetchAfterUsersBooks();
+        fetchAfterUsersBooks();
       }, [adminData]);
 
       const handleLandBookClick = async (book: WaitingReservation) => {
@@ -180,16 +182,96 @@ const WaitingList: React.FC = () => {
         }
       };
 
+      const handleTakeBackBookClick = async (book: WaitingToReturn) => {
+        try {
+          const batch = writeBatch(db);
+      
+          // Delete the document from 'pending' collection
+          const pendingRef = doc(db, "pending", book.bookId);
+          batch.delete(pendingRef);
+      
+          // Update the 'Availability' field in the 'books' collection
+          const bookRef = doc(db, "books", book.bookId);
+          batch.update(bookRef, {
+            availability: true,
+          });
+      
+          // Commit the batch to Firestore
+          await batch.commit();
+      
+          // Update the state to reflect the changes
+          setAfterUserBooks((prevBooks) =>
+            prevBooks.filter((afterUserBooks) => afterUserBooks.bookId !== book.bookId)
+          );
+      
+          setReternedBooksCount((prevCount) => prevCount - 1);
+      
+          alert("Book returned successfully and marked as available!");
+        } catch (error) {
+          console.error("Error updating book status:", error);
+          alert("Failed to update book status.");
+        }
+      };
+      
+      const handleNotOKClick = async (book: WaitingToReturn) => {
+        const reportDamage = window.confirm("Do you want to report damage by the user?");
+        let damageMessage = "";
+
+        if (reportDamage) {
+          // Prompt for a message about the user
+          damageMessage = prompt("Enter a message about the user:") || "";
+          if (!damageMessage) {
+        alert("No message entered. Proceeding without user notes.");
+          } else {
+        try {
+          const userRef = doc(db, "users", book.creatorId);
+
+          // Update the user's document with the damage message
+          await updateDoc(userRef, {
+            notes: damageMessage,
+          });
+
+          alert("Damage report saved successfully!");
+        } catch (error) {
+          console.error("Error saving damage report:", error);
+          alert("Failed to save damage report.");
+        }
+          }
+        }
+
+        // Proceed with the normal "take back" process
+        const notes = prompt("Enter notes for the damaged book:") || "";
+        if (!notes) {
+          alert("No notes entered. Proceeding without book notes.");
+        }
+
+        try {
+          const pendingRef = doc(db, "pending", book.bookId);
+          await updateDoc(pendingRef, {
+        creatorId: user?.uid || "Admin",
+        reason: "damaged",
+        notes: notes,
+        createdAt: new Date().toISOString(),
+          });
+
+          alert("Book marked as damaged with notes.");
+        } catch (error) {
+          console.error("Error updating pending book status:", error);
+          alert("Failed to mark book as damaged.");
+        }
+      };
+      
   return (
 <div className="container">
       <h1>Waiting list</h1>
       <p>📚 Number of reserved books: {reservedBooksCount}</p>
+      <p>📚 Number of books waiting to be returned: {reternedBooksCount}</p>
 
       {loading ? (
         <p>Loading data...</p>
       ) : (
         <>
-          <table className="library_table">
+          <table className="library_table resrve">
           <thead>
             <tr>
               <th>UID</th>
@@ -209,6 +291,30 @@ const WaitingList: React.FC = () => {
               <td>
                 <button onClick={() => handleLandBookClick(book)} className="btn">Hand In</button>
                 <button onClick={() => handleUnreserveClick(book)} className="btn">Unreserve</button>
+              </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <table className="library_table return">
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Book ID</th>
+              <th>Reason</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {afterUserBooks.map((book) => (
+              <tr key={book.bookId}>
+              <td>{book.creatorId}</td>
+              <td>{book.bookId}</td>
+              <td>{book.reason}</td>
+              <td>
+                <button onClick={() => handleTakeBackBookClick(book)} className="btn">take back</button>
+                <button onClick={() => handleNotOKClick(book)} className="btn">NOT OK</button>
               </td>
               </tr>
             ))}

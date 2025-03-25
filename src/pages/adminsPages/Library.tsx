@@ -105,15 +105,15 @@ const Library: React.FC = () => {
     try {
       const batch = writeBatch(db);
   
-      // 🔹 Add reservation to 'reserve' collection
+      // Add reservation to 'reserve' collection
       const reserveRef = doc(db, "reserve", reservationData.bookId);
       batch.set(reserveRef, reservationData);
   
-      // 🔹 Update book's availability in Firestore
+      // Update book's availability in Firestore
       const bookRef = doc(db, "books", reservationData.bookId);
       batch.update(bookRef, { availability: false });
   
-      // 🔹 Update user's 'reservedBooks' field in Firestore
+      // Update user's 'reservedBooks' field in Firestore
       const userRef = doc(db, "users", reservationData.uid);
       const userSnapshot = await getDocs(query(collection(db, "users"), orderBy("uid")));
   
@@ -126,7 +126,7 @@ const Library: React.FC = () => {
         });
       }
   
-      // 🔹 Commit the batch to Firestore
+      // Commit the batch to Firestore
       await batch.commit();
   
       // Update the state to reflect availability change
