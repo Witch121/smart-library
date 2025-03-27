@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/userInfo";
 import { db } from "../../firebase/firebase";
-import { collection, query, getDocs, orderBy, updateDoc, doc, writeBatch, setDoc} from "firebase/firestore";
+import { collection, query, getDocs, orderBy, updateDoc, doc, writeBatch} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 interface Book {
@@ -148,6 +148,7 @@ const Library: React.FC = () => {
     const { name, value } = e.target;
     setUpdatedBook((prev) => ({ ...prev, [name]: value }));
   };
+  
   const handleSaveClick = async () => {
     if (!editBookId) return;
     try {
@@ -224,7 +225,7 @@ const Library: React.FC = () => {
     <div className="container">
         <h1>Library page</h1>
         <p>📚 Available Books: {availableBooksCount}</p>
-        <h2>statistics - damaged books, reserved books</h2>
+        {/* <h2>statistics - damaged books, reserved books</h2> */}
 
         <input
           type="text"

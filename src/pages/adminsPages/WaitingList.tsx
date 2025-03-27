@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/userInfo";
 import { db } from "../../firebase/firebase";
 import { collection, query, getDocs, orderBy, updateDoc, doc, writeBatch} from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
 
 interface WaitingReservation {
   bookId: string;
@@ -20,15 +19,9 @@ interface WaitingToReturn {
 
 const WaitingList: React.FC = () => {
    const { adminData, user } = useAuth();
-    const navigate = useNavigate();
     const [reservedBooks, setReservedBooks] = useState<WaitingReservation[]>([]);
     const [afterUserBooks, setAfterUserBooks] = useState<WaitingToReturn[]>([]);
-    // const [searchTerm, setSearchTerm] = useState<string>("");
-    // const [filter, setFilter] = useState<string>("");
-    // const [sortBy, setSortBy] = useState<string>("title");
     const [loading, setLoading] = useState<boolean>(true);
-    // const [updatedBook, setUpdatedBook] = useState<Partial<WaitingToReturn>>({});
-    // const [editBookId, setEditBookId] = useState<string | null>(null);
     const [reservedBooksCount, setReservedBooksCount] = useState<number>(0);
     const [reternedBooksCount, setReternedBooksCount] = useState<number>(0);
 
@@ -90,7 +83,7 @@ const WaitingList: React.FC = () => {
     
         fetchReservedBooks();
         fetchAfterUsersBooks();
-      }, [adminData]);
+      }, [adminData, user]);
 
       const handleLandBookClick = async (book: WaitingReservation) => {
         try {
@@ -195,6 +188,19 @@ const WaitingList: React.FC = () => {
           batch.update(bookRef, {
             availability: true,
           });
+
+          const userRef = doc(db, "users", book.creatorId);
+          if (userRef) {
+            const userData = (await getDocs(query(collection(db, "users"), orderBy("uid")))).docs.find(
+              (doc) => doc.id === book.creatorId
+            )?.data();
+            const existingReadingHistory = userData?.ReadingHistory || [];
+            const updatedReadingHistory = [...existingReadingHistory, book.bookId];
+      
+            batch.update(userRef, {
+              ReadingHistory: updatedReadingHistory,
+            });
+          };
       
           // Commit the batch to Firestore
           await batch.commit();
@@ -248,10 +254,10 @@ const WaitingList: React.FC = () => {
         try {
           const pendingRef = doc(db, "pending", book.bookId);
           await updateDoc(pendingRef, {
-        creatorId: user?.uid || "Admin",
-        reason: "damaged",
-        notes: notes,
-        createdAt: new Date().toISOString(),
+            creatorId: user?.uid || "Admin",
+            reason: "damaged",
+            notes: notes,
+            createdAt: new Date().toISOString(),
           });
 
           alert("Book marked as damaged with notes.");
@@ -262,7 +268,7 @@ const WaitingList: React.FC = () => {
       };
       
   return (
-<div className="container">
+    <div className="container">
       <h1>Waiting list</h1>
       <p>📚 Number of reserved books: {reservedBooksCount}</p>
       <p>📚 Number of books waiting to be returned: {reternedBooksCount}</p>
@@ -271,6 +277,7 @@ const WaitingList: React.FC = () => {
         <p>Loading data...</p>
       ) : (
         <>
+        <h2>Reserved Books</h2>
           <table className="library_table resrve">
           <thead>
             <tr>
@@ -297,6 +304,7 @@ const WaitingList: React.FC = () => {
           </tbody>
         </table>
 
+        <h2>Books waiting after returning</h2>
         <table className="library_table return">
           <thead>
             <tr>
