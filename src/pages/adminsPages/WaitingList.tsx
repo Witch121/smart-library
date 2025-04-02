@@ -12,6 +12,7 @@ interface WaitingReservation {
 
 interface WaitingToReturn {
   bookId: string;
+  title: string;
   creatorId: string;
   reason: string;
 }
@@ -30,7 +31,7 @@ const WaitingList: React.FC = () => {
           if (!adminData) return;
           setLoading(true);
           if(user){
-            console.log("user", user.uid);
+            // console.log("user", user.uid);
           }
           try {
             const reservedRef = collection(db, "reserve");
@@ -68,11 +69,11 @@ const WaitingList: React.FC = () => {
               return {
                 bookId: data.bookId || "N/A",
                 creatorId: data.creatorId || "N/A",
-                reason: data.reason || "N/A", // Corrected typo from 'reson' to 'reason'
+                reason: data.reason || "N/A",
               } as WaitingToReturn;
             });
         
-            setAfterUserBooks(pendingData); // Corrected line
+            setAfterUserBooks(pendingData);
             setReternedBooksCount(pendingData.length);
           } catch (error) {
             console.error("Error fetching users: ", error);
@@ -266,6 +267,16 @@ const WaitingList: React.FC = () => {
           alert("Failed to mark book as damaged.");
         }
       };
+
+      const copyID = (bookId: string) => {
+        navigator.clipboard.writeText(bookId).then(() => {
+          alert("Book ID copied to clipboard!");
+        }
+        ).catch((error) => {
+          console.error("Error copying book ID: ", error);
+          alert("Failed to copy book ID.");
+        })
+      };
       
   return (
     <div className="container">
@@ -282,7 +293,7 @@ const WaitingList: React.FC = () => {
           <thead>
             <tr>
               <th>UID</th>
-              <th>Book ID</th>
+              {/* <th>Book ID</th> */}
               <th>Title</th>
               <th>Reserved at</th>
               <th>Actions</th>
@@ -292,8 +303,8 @@ const WaitingList: React.FC = () => {
             {reservedBooks.map((book) => (
               <tr key={book.bookId}>
               <td>{book.uid}</td>
-              <td>{book.bookId}</td>
-              <td>{book.title}</td>
+              {/* <td>{book.bookId}</td> */}
+              <td><span onClick={() => copyID(book.bookId)}>{book.title}</span></td>
               <td>{book.reservedAt}</td>
               <td>
                 <button onClick={() => handleLandBookClick(book)} className="btn">Hand In</button>
@@ -310,6 +321,7 @@ const WaitingList: React.FC = () => {
             <tr>
               <th>UID</th>
               <th>Book ID</th>
+              {/* <th>Title</th> */}
               <th>Reason</th>
               <th>Actions</th>
             </tr>
@@ -319,6 +331,7 @@ const WaitingList: React.FC = () => {
               <tr key={book.bookId}>
               <td>{book.creatorId}</td>
               <td>{book.bookId}</td>
+              {/* <span onClick={() => copyID(book.bookId)}>{book.title}</span> */}
               <td>{book.reason}</td>
               <td>
                 <button onClick={() => handleTakeBackBookClick(book)} className="btn">take back</button>

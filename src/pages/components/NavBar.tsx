@@ -63,7 +63,7 @@ const NavBar = () => {
                   <li><Link to="/recommendationAI" className="linkNav">🤖 AI Recommend</Link></li>
                   <li><Link to="/readingRoom" className="linkNav">📖 Reading Room</Link></li>
                   <li><Link to="/takeBook" className="linkNav">📚 Take Book</Link></li>
-                  <li><Link to="/usersLibrary" className="linkNav">🏛️ Users Library</Link></li>
+                  <li><Link to="/usersLibrary" className="linkNav">🏛️ Not Yet Mine Books</Link></li>
                 </>
               )}
               {isAdmin && (

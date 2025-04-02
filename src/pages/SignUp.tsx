@@ -41,6 +41,7 @@ const SignUp: React.FC = () => {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          maxLength={255} 
           required
         />
         <input
@@ -49,6 +50,7 @@ const SignUp: React.FC = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          maxLength={255} 
           required
         />
         <input

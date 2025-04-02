@@ -15,10 +15,17 @@ const SignIn: React.FC = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/");
-    } catch (err) {
-      setError((err as Error).message);
+        } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes("auth/invalid-credential")) {
+          alert("Invalid credentials. Please check your email and password.");
+        } else if (err.message.includes("auth/network-request-failed")) {
+          alert("Network error. Please check your internet connection.");
+        }
+        setError(err.message);
+        
+      }}
     }
-  };
 
   return (
     <div className="container">
@@ -31,6 +38,7 @@ const SignIn: React.FC = () => {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          maxLength={255} 
           required
         />
         <input
@@ -39,8 +47,10 @@ const SignIn: React.FC = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          maxLength={255} 
           required
         />
+        {email.length > 255 && <p className="error-message">Email cannot exceed 255 characters.</p>}
         <button type="submit" className="submit-btn">Sign In</button>
       </form>
     </div>

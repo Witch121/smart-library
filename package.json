@@ -5,6 +5,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.23.0",
     "cra-template-pwa": "2.0.0",
+    "date-fns": "^4.1.0",
     "firebase": "^11.4.0",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
@@ -37,6 +38,7 @@
     ]
   },
   "devDependencies": {
+    "@types/date-fns": "^2.6.3",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
