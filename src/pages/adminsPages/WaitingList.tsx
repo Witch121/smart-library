@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/userInfo";
 import { db } from "../../firebase/firebase";
-import { collection, query, getDocs, orderBy, updateDoc, doc, writeBatch} from "firebase/firestore";
+import { collection, query, getDocs, orderBy, updateDoc, doc, writeBatch, getDoc} from "firebase/firestore";
 
 interface WaitingReservation {
   bookId: string;
   title: string;
   reservedAt: string;
   uid: string;
+  nickname: string;
 }
 
 interface WaitingToReturn {
   bookId: string;
   title: string;
   creatorId: string;
+  nickname: string;
   reason: string;
 }
 
@@ -43,13 +45,28 @@ const WaitingList: React.FC = () => {
                 bookId: data.bookId || "N/A",
                 title: data.title || "N/A",
                 uid: data.uid || "N/A",
+                nickname: "Unknown User",
                 reservedAt: data.reservedAt || [],
               } as WaitingReservation;
             });
     
-            setReservedBooks(reservedData);
-    
-            setReservedBooksCount(reservedData.length);
+            const reservedDataWithUsers = await Promise.all(
+              reservedData.map(async (book) => {
+                const usersRef = doc(db, "users", book.uid);
+                const userSnapshot = await getDoc(usersRef);
+                if (userSnapshot.exists()) {
+                  const userData = userSnapshot.data();
+                  return {
+                    ...book,
+                    nickname: userData?.nickname || "Unknown User ",
+                  };
+                }
+                return { ...book, nickname: "Unknown User ID" }; // Fallback if book not found
+              })
+            );
+
+            setReservedBooks(reservedDataWithUsers);
+            setReservedBooksCount(reservedDataWithUsers.length);
           } catch (error) {
             console.error("Error fetching users: ", error);
           } finally {
@@ -69,12 +86,44 @@ const WaitingList: React.FC = () => {
               return {
                 bookId: data.bookId || "N/A",
                 creatorId: data.creatorId || "N/A",
+                title: "Unknown Title",
+                nickname: "Unknown User",
                 reason: data.reason || "N/A",
               } as WaitingToReturn;
             });
+
+            const pendingDataWithTitles = await Promise.all(
+              pendingData.map(async (book) => {
+                const bookRef = doc(db, "books", book.bookId);
+                const bookSnapshot = await getDoc(bookRef);
+                if (bookSnapshot.exists()) {
+                  const bookData = bookSnapshot.data();
+                  return {
+                    ...book,
+                    title: bookData?.title || "Unknown Title",
+                  };
+                }
+                return { ...book, title: "Unknown Title" };
+              })
+            );
         
-            setAfterUserBooks(pendingData);
-            setReternedBooksCount(pendingData.length);
+            const pendingDataWithTitleAndUsers = await Promise.all(
+              pendingDataWithTitles.map(async (book) => {
+                const usersRef = doc(db, "users", book.creatorId);
+                const userSnapshot = await getDoc(usersRef);
+                if (userSnapshot.exists()) {
+                  const userData = userSnapshot.data();
+                  return {
+                    ...book,
+                    nickname: userData?.nickname || "Unknown User ",
+                  };
+                }
+                return { ...book, nickname: "Unknown User ID" }; // Fallback if book not found
+              })
+            );
+            setAfterUserBooks(pendingDataWithTitleAndUsers);
+            setReternedBooksCount(pendingDataWithTitleAndUsers.length);
+
           } catch (error) {
             console.error("Error fetching users: ", error);
           } finally {
@@ -268,14 +317,13 @@ const WaitingList: React.FC = () => {
         }
       };
 
-      const copyID = (bookId: string) => {
-        navigator.clipboard.writeText(bookId).then(() => {
-          alert("Book ID copied to clipboard!");
-        }
-        ).catch((error) => {
-          console.error("Error copying book ID: ", error);
-          alert("Failed to copy book ID.");
-        })
+      const copyID = (id: string, type: "book" | "user") => {
+        navigator.clipboard.writeText(id).then(() => {
+          alert(`${type === "book" ? "Book" : "User"} ID copied to clipboard!`);
+        }).catch((error) => {
+          console.error(`Error copying ${type} ID: `, error);
+          alert(`Failed to copy ${type} ID.`);
+        });
       };
       
   return (
@@ -292,8 +340,7 @@ const WaitingList: React.FC = () => {
           <table className="library_table resrve">
           <thead>
             <tr>
-              <th>UID</th>
-              {/* <th>Book ID</th> */}
+              <th>Username</th>
               <th>Title</th>
               <th>Reserved at</th>
               <th>Actions</th>
@@ -302,9 +349,8 @@ const WaitingList: React.FC = () => {
           <tbody>
             {reservedBooks.map((book) => (
               <tr key={book.bookId}>
-              <td>{book.uid}</td>
-              {/* <td>{book.bookId}</td> */}
-              <td><span onClick={() => copyID(book.bookId)}>{book.title}</span></td>
+              <td><span onClick={() => copyID(book.uid, "user")}>{book.nickname}</span></td>
+              <td><span onClick={() => copyID(book.bookId, "book")}>{book.title}</span></td>
               <td>{book.reservedAt}</td>
               <td>
                 <button onClick={() => handleLandBookClick(book)} className="btn">Hand In</button>
@@ -319,9 +365,9 @@ const WaitingList: React.FC = () => {
         <table className="library_table return">
           <thead>
             <tr>
-              <th>UID</th>
-              <th>Book ID</th>
-              {/* <th>Title</th> */}
+              {/* <th>UID</th> */}
+              <th>Username</th>
+              <th>Title</th>
               <th>Reason</th>
               <th>Actions</th>
             </tr>
@@ -329,9 +375,9 @@ const WaitingList: React.FC = () => {
           <tbody>
             {afterUserBooks.map((book) => (
               <tr key={book.bookId}>
-              <td>{book.creatorId}</td>
-              <td>{book.bookId}</td>
-              {/* <span onClick={() => copyID(book.bookId)}>{book.title}</span> */}
+              {/* <td>{book.creatorId}</td> */}
+              <td><span onClick={() => copyID(book.creatorId, "user")}>{book.nickname}</span></td>
+              <td><span onClick={() => copyID(book.bookId, "book")}>{book.title}</span></td>
               <td>{book.reason}</td>
               <td>
                 <button onClick={() => handleTakeBackBookClick(book)} className="btn">take back</button>

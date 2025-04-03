@@ -25,7 +25,7 @@ const Repair: React.FC = () => {
           if(user){
             // console.log("user", user.uid);
           }
-          try {
+      try {
       const pendingCollection = collection(db, "pending");
       const q = query(pendingCollection, where("reason", "==", "damaged"));
       const querySnapshot = await getDocs(q);
@@ -50,7 +50,7 @@ const Repair: React.FC = () => {
               title: bookData?.title || "Unknown Title",
             };
           }
-          return { ...book, title: "Unknown Title" }; // Fallback if book not found
+          return { ...book, title: "Unknown Title" };
         })
       );
 

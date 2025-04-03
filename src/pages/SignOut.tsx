@@ -23,8 +23,8 @@ const SignOut: React.FC = () => {
   };
 
   return (
-    <div className="container signOut">
-      <div className="signOut_content">
+    <div className="container minimalisticWithBigImg">
+      <div className="minimalistic_content">
         <img
           src={signOutImg}
           className="big-img"
@@ -32,7 +32,7 @@ const SignOut: React.FC = () => {
           alt="How about no Icon"
         />
       </div>
-      <div className="signOut_btn">
+      <div className="textToBtnMinimalVibe">
         <h2>Are you sure you want to sign out?</h2>
         <div className="btn_row">
           <button onClick={handleSignOut} className="btn">Yes</button>

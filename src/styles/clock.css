@@ -1,0 +1,27 @@
+.clock-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    width: fit-content;
+    cursor: default;
+  }
+  
+  .clock-icon {
+    font-size: 1.2rem;
+  }
+  
+  .clock-time {
+    letter-spacing: 0.5px;
+    font-variant-numeric: tabular-nums;
+    font-size: larger;
+  }
+  
