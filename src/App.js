@@ -14,7 +14,7 @@ import LibrarianPanel from "./pages/adminsPages/LibrarianPanel";
 import Library from "./pages/adminsPages/Library";
 import Repair from "./pages/adminsPages/Repair";
 import WaitingList from "./pages/adminsPages/WaitingList";
-import InfoAboutUsers from "./pages/adminsPages/InfoAboutUnsers"
+import InfoAboutUsers from "./pages/adminsPages/InfoAboutUsers"
 
 import RecommendationAI from "./pages/usersPages/RecommendationAI";
 import ReadingRoom from "./pages/usersPages/ReadingRoom";

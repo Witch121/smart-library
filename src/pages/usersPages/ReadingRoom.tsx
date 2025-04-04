@@ -212,7 +212,7 @@ const ReadingRoom: React.FC = () => {
         <table className="library_table reserve">
             <thead>
               <tr>
-                <th>Book ID</th>
+                {/* <th>Book ID</th> */}
                 <th>Title</th>
                 <th>Author</th>
                 <th>Feedback</th>
@@ -224,7 +224,7 @@ const ReadingRoom: React.FC = () => {
             <tbody>
               {historyOfReading.map((book) => (
                 <tr key={book.bookId}>
-                  <td>{book.bookId}</td>
+                  {/* <td>{book.bookId}</td> */}
                   <td>{book.title}</td>
                   <td>{book.author}</td>
                   <td>
@@ -281,7 +281,7 @@ const ReadingRoom: React.FC = () => {
         <table className="library_table current">
           <thead>
             <tr>
-              <th>Book ID</th>
+              {/* <th>Book ID</th> */}
               <th>Title</th>
               <th>Author</th>
               <th>Actions</th>
@@ -290,7 +290,7 @@ const ReadingRoom: React.FC = () => {
           <tbody>
             {currentBooks.map((book) => (
               <tr key={book.bookId}>
-                <td>{book.bookId}</td>
+                {/* <td>{book.bookId}</td> */}
                 <td>{book.title}</td>
                 <td>{book.author}</td>
                 <td>

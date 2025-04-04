@@ -14,7 +14,7 @@ const SignIn: React.FC = () => {
     setError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/");
+      navigate("/library");
         } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes("auth/invalid-credential")) {

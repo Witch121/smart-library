@@ -184,7 +184,7 @@ const UsersLibrary: React.FC = () => {
         <table className="library_table reserve">
             <thead>
               <tr>
-                <th>Book ID</th>
+                {/* <th>Book ID</th> */}
                 <th>Title</th>
                 <th>Actions</th>
               </tr>
@@ -192,7 +192,7 @@ const UsersLibrary: React.FC = () => {
             <tbody>
               {reservedBooks.map((book) => (
                 <tr key={book.bookId}>
-                  <td>{book.bookId}</td>
+                  {/* <td>{book.bookId}</td> */}
                   <td>{book.title}</td>
                   <td>
                     <button onClick={() => handleUnreserveClick(book)} className="btn">Unreserve</button>
@@ -206,7 +206,7 @@ const UsersLibrary: React.FC = () => {
         <table className="library_table wishlist">
           <thead>
             <tr>
-              <th>Book ID</th>
+              {/* <th>Book ID</th> */}
               <th>Title</th>
               <th>Author</th>
               <th>Actions</th>
@@ -215,7 +215,7 @@ const UsersLibrary: React.FC = () => {
           <tbody>
             {wishlist.map((book) => (
               <tr key={book.bookId}>
-                <td>{book.bookId}</td>
+                {/* <td>{book.bookId}</td> */}
                 <td>{book.title}</td>
                 <td>{book.author}</td>
                 <td>

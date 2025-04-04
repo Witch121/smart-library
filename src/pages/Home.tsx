@@ -74,6 +74,7 @@ const Home: React.FC = () => {
               </div>
               <div className="wish">
                 {adminData?.isAdmin && <h3> {wish}</h3>}
+                {user && <h3>✨ “Libraries will get you through times of no money better than money will get you through times of no libraries.” – Anne Herbert</h3>}
               </div>
               <div className="btn_row">
                 <form onSubmit={adminData?.isAdmin ? handleSubmitAdmin : handleSubmitUser}>
@@ -86,11 +87,6 @@ const Home: React.FC = () => {
       ) : (
         <p>Please sign in or sign up to access your personalized recommendations.</p>
       )}
-      {/* <div>
-        <form onSubmit={adminData?.isAdmin ? handleSubmitAdmin : handleSubmitUser}>
-          <input type="submit" value={adminData?.isAdmin ? "Library" : "Find The Book"} className="btn" />
-        </form>
-      </div> */}
     </div>
   );
 };

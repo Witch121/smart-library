@@ -217,6 +217,12 @@ const Library: React.FC = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+  const handleTestClick = () => {
+    setLoading(true); 
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+  };
 
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
   const paginatedBooks = filteredBooks.slice((currentPage - 1) * booksPerPage, currentPage * booksPerPage);
@@ -225,7 +231,6 @@ const Library: React.FC = () => {
     <div className="container">
         <h1>Library page</h1>
         <p>📚 Available Books: {availableBooksCount}</p>
-        {/* <h2>statistics - damaged books, reserved books</h2> */}
 
         <input
           type="text"
@@ -247,6 +252,7 @@ const Library: React.FC = () => {
 
         {loading ? (
           <p>Loading your books...</p>
+          // <button onClick={() => handleTestClick()}>Test</button>
         ) : (
             <>
             {showReservationForm && (

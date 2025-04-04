@@ -248,7 +248,7 @@ const TakeBook: React.FC = () => {
                 <table className="library_table">
                 <thead>
                   <tr className="showLibraryTableHead">
-                    {["id","Title", "Author", "Genre", "Language", "Publisher", "Year", "Availability"].map((label, index) => (
+                    {["Title", "Author", "Genre", "Language", "Publisher", "Year", "Availability"].map((label, index) => (
                       <th key={label}>
                         {label}
                         </th>
@@ -259,7 +259,7 @@ const TakeBook: React.FC = () => {
                 <tbody>
                   {paginatedBooks.map((book) => (
                     <tr key={book.id}>
-                      {["id","title", "author", "genres", "language", "publisher", "year", "availability"].map((field) => (
+                      {["title", "author", "genres", "language", "publisher", "year", "availability"].map((field) => (
                         <td key={field}>
                           {field === "availability" || field === "avaliability" ? (
                             book.availability ? "Available" : "Unavailable"
