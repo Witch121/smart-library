@@ -219,7 +219,7 @@ const UsersLibrary: React.FC = () => {
                 <td>{book.title}</td>
                 <td>{book.author}</td>
                 <td>
-                  <button onClick={() => handleUnwishClick(book)} className="btn">Delte from wishlist</button>
+                  <button onClick={() => handleUnwishClick(book)} className="btn">Delete from wishlist</button>
                 </td>
               </tr>
             ))}

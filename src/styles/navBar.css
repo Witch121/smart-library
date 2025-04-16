@@ -4,6 +4,7 @@
     grid-column: 1 / 2;
     left: 0;
     width: calc(max-content + 20px);
+    min-width: 15rem;
     height: 100vh;
     background-color: #1f2937;
     padding: 20px;

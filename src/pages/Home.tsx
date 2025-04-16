@@ -73,8 +73,13 @@ const Home: React.FC = () => {
                 {adminData?.isAdmin && <h3>🛡️ Have a nice day, the guardian of the library!</h3>}
               </div>
               <div className="wish">
-                {adminData?.isAdmin && <h3> {wish}</h3>}
-                {user && <h3>✨ “Libraries will get you through times of no money better than money will get you through times of no libraries.” – Anne Herbert</h3>}
+                {user ? (
+                  adminData?.isAdmin ? (
+                    <h3>{wish}</h3>
+                  ) : (
+                    <h3>✨ “Libraries will get you through times of no money better than money will get you through times of no libraries.” – Anne Herbert</h3>
+                  )
+                ) : null}
               </div>
               <div className="btn_row">
                 <form onSubmit={adminData?.isAdmin ? handleSubmitAdmin : handleSubmitUser}>

@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/userInfo";
 import { db } from "../../firebase/firebase";
-import { collection, query, getDocs, orderBy, updateDoc, doc} from "firebase/firestore";
+import { collection, query, getDocs, orderBy, updateDoc, doc, getDoc} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-
+//add delete user func
 interface User {
   id: string;
   nickname: string;
   email: string;
   reservedBooks: string[];
+  reservedBooksTitles: { bookId: string; title: string }[];
   currentBook: string[];
+  currentBooksTitles: { bookId: string; title: string }[];
   notes: string;
+  allowedToUseLibrary: boolean;
+  lastSession: string;
 }
 
 const InfoAboutUsers: React.FC = () => {
@@ -26,15 +30,19 @@ const InfoAboutUsers: React.FC = () => {
   const [numberOfUsersCount, setNumberOfUsersCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const usersPerPage = 20;
+  
 
   useEffect(() => {
     const fetchUsers = async () => {
       if (!adminData) return;
       setLoading(true);
+  
       try {
+        // Fetch users from the "users" collection
         const usersRef = collection(db, "users");
         const q = query(usersRef, orderBy(sortBy));
         const querySnapshot = await getDocs(q);
+  
         const usersData = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -44,20 +52,63 @@ const InfoAboutUsers: React.FC = () => {
             reservedBooks: data.reservedBooks || [],
             currentBook: data.currentBook || [],
             notes: data.notes || "",
+            allowedToUseLibrary: data.allowedToUseLibrary || true,
+            lastSession: data.lastSession ? (data.lastSession.toDate ? data.lastSession.toDate().toLocaleDateString() : new Date(data.lastSession).toLocaleDateString()) : "N/A",
           } as User;
         });
-
-        setUsers(usersData);
-
-        // Fix the count
-        setNumberOfUsersCount(usersData.length);
+  
+        // Combine all book IDs (current and reserved) to fetch titles in one go
+        const allBookIds = [
+          ...new Set([
+            ...usersData.flatMap((user) => user.currentBook || []),
+            ...usersData.flatMap((user) => user.reservedBooks || []),
+          ]),
+        ];
+  
+        // Fetch all book titles from the "books" collection
+        const booksWithTitles = await Promise.all(
+          allBookIds.map(async (bookId: string) => {
+            const bookRef = doc(db, "books", bookId);
+            const bookSnapshot = await getDoc(bookRef);
+            if (bookSnapshot.exists()) {
+              const bookData = bookSnapshot.data();
+              return {
+                bookId,
+                title: bookData?.title || "Unknown Title",
+              };
+            }
+            return { bookId, title: "Unknown Title" }; // Fallback if book not found
+          })
+        );
+  
+        // Create a map of bookId to title for quick lookup
+        const bookIdToTitleMap = booksWithTitles.reduce((map, book) => {
+          map[book.bookId] = book.title;
+          return map;
+        }, {} as Record<string, string>);
+  
+        // Map book titles to users
+        const usersWithBookTitles = usersData.map((user) => ({
+          ...user,
+          currentBooksTitles: user.currentBook.map((bookId) => ({
+            bookId,
+            title: bookIdToTitleMap[bookId] || "Unknown Title",
+          })),
+          reservedBooksTitles: user.reservedBooks.map((bookId) => ({
+            bookId,
+            title: bookIdToTitleMap[bookId] || "Unknown Title",
+          })),
+        }));
+  
+        setUsers(usersWithBookTitles);
+        setNumberOfUsersCount(usersWithBookTitles.length);
       } catch (error) {
         console.error("Error fetching users: ", error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchUsers();
   }, [sortBy, adminData]);
 
@@ -100,7 +151,9 @@ const InfoAboutUsers: React.FC = () => {
       (Array.isArray(user.reservedBooks) &&
         user.reservedBooks.some((book) => book.toLowerCase().includes(lowerCaseFilter))) ||
       (Array.isArray(user.currentBook) &&
-        user.currentBook.some((book) => book.toLowerCase().includes(lowerCaseFilter)))
+        user.currentBook.some((book) => book.toLowerCase().includes(lowerCaseFilter))) ||
+      user.lastSession.toLowerCase().includes(lowerCaseFilter) ||
+      user.allowedToUseLibrary.toString().toLowerCase().includes(lowerCaseFilter)
     );
   });
 
@@ -114,6 +167,15 @@ const InfoAboutUsers: React.FC = () => {
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
+
+  const copyID = (id: string, type: "book" | "user") => {
+    navigator.clipboard.writeText(id).then(() => {
+      alert(`${type === "book" ? "Book" : "User"} ID copied to clipboard!`);
+    }).catch((error) => {
+      console.error(`Error copying ${type} ID: `, error);
+      alert(`Failed to copy ${type} ID.`);
+    });
+  };
 
   return (
     <div className="container">
@@ -146,43 +208,76 @@ const InfoAboutUsers: React.FC = () => {
               <th>Email</th>
               <th>Current Books</th>
               <th>Reserved Books</th>
+              <th>Allowed to use library</th>
+              <th>Last Session</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {paginatedUsers.map((user) => (
               <tr key={user.id}>
-                {["id", "nickname", "email", "currentBook", "reservedBooks"].map((field) => (
-                  <td key={field}>
-                    {editUserId === user.id ? (
-                      <input
-                        type="text"
-                        name={field}
-                        value={(updatedUser as any)[field as keyof User] || (user as any)[field as keyof User]}
-                        onChange={handleInputChange}
-                      />
-                    ) : field === "currentBook" ? (
-                      Array.isArray(user[field as keyof User])
-                        ? (user[field as keyof User] as string[]).join(", ") // ✅ Works when it's an array
-                        : typeof user[field as keyof User] === "string"
-                        ? user[field as keyof User] // ✅ Works when it's already a string
-                        : "N/A"
-                  ) : field === "reservedBooks" ? (
-                      Array.isArray(user[field as keyof User])
-                        ? (user[field as keyof User] as string[]).join(", ")
-                        : typeof user[field as keyof User] === "string"
-                        ? user[field as keyof User]
-                        : "N/A"
-                  ) : (
-                      user[field as keyof User]
-                    )}
-                  </td>
-                ))}
+                <td>{user.id}</td>
                 <td>
                   {editUserId === user.id ? (
-                    <button onClick={handleSaveClick} className="btn">Save</button>
+                    <input
+                      type="text"
+                      name="nickname"
+                      value={updatedUser.nickname !== undefined ? updatedUser.nickname : user.nickname}
+                      onChange={handleInputChange}
+                    />
                   ) : (
-                    <button onClick={() => handleEditClick(user)} className="btn">Edit</button>
+                    user.nickname
+                  )}
+                </td>
+                <td>{user.email}</td>
+                <td>
+                  <ul>
+                    {user.currentBooksTitles.map((book) => (
+                      <li key={book.bookId}>
+                        <td><span onClick={() => copyID(book.bookId, "book")}>{book.title}</span></td>
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+                <td>
+                  <ul>
+                    {user.reservedBooksTitles.map((book) => (
+                      <li key={book.bookId}>
+                        <td><span onClick={() => copyID(book.bookId, "book")}>{book.title}</span></td>
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+                <td>
+                  {editUserId === user.id ? (
+                    <select
+                      name="allowedToUseLibrary"
+                      value={
+                        updatedUser.allowedToUseLibrary !== undefined
+                          ? String(updatedUser.allowedToUseLibrary)
+                          : String(user.allowedToUseLibrary)
+                      }
+                      onChange={handleInputChange}
+                    >
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  ) : user.allowedToUseLibrary ? (
+                    "Yes"
+                  ) : (
+                    "No"
+                  )}
+                </td>
+                <td>{user.lastSession}</td>
+                <td>
+                  {editUserId === user.id ? (
+                    <button onClick={handleSaveClick} className="btn">
+                      Save
+                    </button>
+                  ) : (
+                    <button onClick={() => handleEditClick(user)} className="btn">
+                      Edit
+                    </button>
                   )}
                 </td>
               </tr>

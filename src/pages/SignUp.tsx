@@ -23,6 +23,7 @@ const SignUp: React.FC = () => {
         nickname,
         uid: user.uid,
         createdAt: new Date().toISOString(),
+        allowedToUseLibrary: true,
       });
       navigate("/");
     } catch (err) {
@@ -61,7 +62,7 @@ const SignUp: React.FC = () => {
           onChange={(e) => setNickname(e.target.value)}
           required
         />
-        <button type="submit" className="submit-btn">Sign Up</button>
+        <button type="submit" className="submit-btn signUp" disabled={!email || !password || !nickname}>Sign Up</button>
       </form>
     </div>
   );

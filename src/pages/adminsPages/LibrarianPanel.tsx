@@ -81,7 +81,7 @@ const LibrarianPanel: React.FC = () => {
     };
 
   useEffect(() => {
-    if (!user || !adminData) {
+    if ( !adminData) {
       navigate("/");
     }
   }, [user, adminData, navigate]);
@@ -139,6 +139,7 @@ const LibrarianPanel: React.FC = () => {
 
           await Promise.all(uploadPromises);
           alert("Books uploaded successfully!");
+          navigate("/library");
         } catch (err) {
           console.error("Error uploading books:", err);
           setError("Failed to upload books.");
@@ -183,7 +184,7 @@ const LibrarianPanel: React.FC = () => {
 
               <div>
                 <label htmlFor="availability" className="form-label">
-                  Avaliability
+                  Availability
                 </label>
                 <select
                   name="availability"

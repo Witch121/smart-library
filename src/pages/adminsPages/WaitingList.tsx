@@ -19,7 +19,6 @@ interface WaitingToReturn {
   reason: string;
 }
 
-
 const WaitingList: React.FC = () => {
    const { adminData, user } = useAuth();
     const [reservedBooks, setReservedBooks] = useState<WaitingReservation[]>([]);

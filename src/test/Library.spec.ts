@@ -14,11 +14,13 @@ test.describe("Library Page", () => {
     // await page.goto("/library");
   });
 
+// [Verification] Checks if the main heading "Library" is visible on the page, ensuring the page title is rendered.
   test("renders the library page with title", async ({ page }) => {
     // Check if the heading with "Library" is visible
     await expect(page.getByRole("heading", { name: /Library/i })).toBeVisible();
   });
 
+// [Verification] Verifies that at least one book is displayed in the library table after searching for a specific title, confirming basic data rendering.
   test("displays at least one book in the table", async ({ page }) => {
     const searchInput = page.getByPlaceholder("I`m looking for ...");
     // Fill the search input with a query
@@ -32,6 +34,7 @@ test.describe("Library Page", () => {
     expect(rowCount).toBeGreaterThan(0);
   });
 
+// [Verification] Checks if the search input correctly filters the book list by title, validating the search functionality.
   test("search input filters books by title", async ({ page }) => {
     // Locate the search input field
     const searchInput = page.getByPlaceholder("I`m looking for ...");
@@ -42,6 +45,7 @@ test.describe("Library Page", () => {
     await expect(page.getByText("A Man Called Ove")).toBeVisible();
   });
 
+// [Verification] Verifies that clicking a "Reserve" or "Edit" button (if present after a search) triggers a confirmation or opens a form, checking the basic interactivity of these actions.
   test("clicking reserve/edit buttons shows confirmation or opens form", async ({ page }) => {
     const searchInput = page.getByPlaceholder("I`m looking for ...");
     // Fill the search input with a query
